@@ -102,8 +102,8 @@ export async function generateYouTubeTranscript(videoId: string): Promise<string
   // Try to extract player response with multiple patterns
   let playerResponse: any = null;
   const patterns = [
-    /ytInitialPlayerResponse\s*=\s*(\{.+?\})\s*;[\s\n]*(?:var|const|let|window|<\/script>)/s,
-    /ytInitialPlayerResponse\s*=\s*(\{.+?\})\s*;/s,
+    /ytInitialPlayerResponse\s*=\s*(\{[\s\S]+?\})\s*;[\s\n]*(?:var|const|let|window|<\/script>)/,
+    /ytInitialPlayerResponse\s*=\s*(\{[\s\S]+?\})\s*;/,
   ];
   for (const pattern of patterns) {
     const match = html.match(pattern);

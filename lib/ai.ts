@@ -88,55 +88,25 @@ export async function processSermonTranscript(
 }
 
 export async function generateYouTubeTranscript(videoId: string): Promise<string> {
-  const headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    "Accept-Language": "en-US,en;q=0.9",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Cookie": "CONSENT=YES+cb.20210328-17-p0.en+FX+499; YSC=DwKYllHNwuw; VISITOR_INFO1_LIVE=oKckVSqvaGw",
-  };
+  const { Innertube } = await import("youtubei.js");
+  const yt = await Innertube.create({ retrieve_player: false });
 
-  const pageRes = await fetch(`https://www.youtube.com/watch?v=${videoId}&hl=en`, { headers });
-  if (!pageRes.ok) throw new Error("Could not fetch YouTube page");
-  const html = await pageRes.text();
+  const info = await yt.getInfo(videoId);
+  const transcriptData = await info.getTranscript();
 
-  // Try to extract player response with multiple patterns
-  let playerResponse: any = null;
-  const patterns = [
-    /ytInitialPlayerResponse\s*=\s*(\{[\s\S]+?\})\s*;[\s\n]*(?:var|const|let|window|<\/script>)/,
-    /ytInitialPlayerResponse\s*=\s*(\{[\s\S]+?\})\s*;/,
-  ];
-  for (const pattern of patterns) {
-    const match = html.match(pattern);
-    if (match) {
-      try { playerResponse = JSON.parse(match[1]); break; } catch {}
-    }
+  const segments = transcriptData?.transcript?.content?.body?.initial_segments;
+  if (!segments || segments.length === 0) {
+    throw new Error("This video does not have captions enabled. Please try a video from Elevation Church, TD Jakes, or Steven Furtick.");
   }
 
-  if (!playerResponse) {
-    throw new Error("Could not load this video. Make sure it is a public YouTube video.");
-  }
-
-  const captions = playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
-  if (!captions || captions.length === 0) {
-    throw new Error("This video does not have captions enabled. Please try a video from a major church channel (Elevation, TD Jakes, etc.)");
-  }
-
-  const track = captions.find((c: any) => c.languageCode === "en") || captions[0];
-  const captionUrl = track.baseUrl + "&fmt=json3";
-
-  const captionRes = await fetch(captionUrl, { headers });
-  if (!captionRes.ok) throw new Error("Could not fetch captions");
-
-  const captionData = await captionRes.json();
-  const text = captionData.events
-    ?.filter((e: any) => e.segs)
-    .map((e: any) => e.segs.map((s: any) => s.utf8).join(""))
+  const text = segments
+    .map((s: any) => s.snippet?.text || "")
     .join(" ")
     .replace(/\n/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 
-  if (!text || text.length < 100) throw new Error("Could not extract transcript. The video may not have captions.");
+  if (!text || text.length < 100) throw new Error("Could not extract transcript from this video.");
   return text;
 }
 

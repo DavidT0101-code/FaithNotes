@@ -87,58 +87,22 @@ export async function processSermonTranscript(
   return { ...parsed, devotions, quiz };
 }
 
-export async function generateYouTubeTranscript(videoId: string): Promise<string> {
-  // Try direct timedtext API (works for many videos with captions)
-  const attempts = [
-    `https://www.youtube.com/api/timedtext?v=${videoId}&lang=en&fmt=json3`,
-    `https://www.youtube.com/api/timedtext?v=${videoId}&lang=en&kind=asr&fmt=json3`,
-    `https://www.youtube.com/api/timedtext?v=${videoId}&lang=en-US&fmt=json3`,
-    `https://www.youtube.com/api/timedtext?v=${videoId}&lang=en-US&kind=asr&fmt=json3`,
-  ];
+export async function transcribeAudio(audioBuffer: Buffer, filename: string): Promise<string> {
+  const blob = new Blob([audioBuffer]);
+  const file = new File([blob], filename, { type: getMimeType(filename) });
 
-  for (const url of attempts) {
-    try {
-      const res = await fetch(url, {
-        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" },
-      });
-      if (!res.ok) continue;
-      const raw = await res.text();
-      if (!raw || raw.length < 20) continue;
-      const data = JSON.parse(raw);
-      const events = data?.events;
-      if (!events?.length) continue;
-      const text = events
-        .filter((e: any) => e.segs)
-        .map((e: any) => e.segs.map((s: any) => s.utf8 ?? "").join(""))
-        .join(" ")
-        .replace(/\n/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-      if (text.length > 100) return text;
-    } catch {}
-  }
+  const transcription = await client.audio.transcriptions.create({
+    file,
+    model: "whisper-large-v3",
+    response_format: "text",
+  });
 
-  // Fallback: youtubei.js
-  try {
-    const { Innertube } = await import("youtubei.js");
-    const yt = await Innertube.create();
-    const info = await yt.getInfo(videoId);
-    const transcriptData = await info.getTranscript();
-    const segments = transcriptData?.transcript?.content?.body?.initial_segments ?? [];
-    const text = segments
-      .map((s: any) => s.snippet?.text ?? "")
-      .join(" ")
-      .replace(/\n/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-    if (text.length > 100) return text;
-  } catch {}
-
-  throw new Error("No captions found for this video. Please use a video with the CC (closed captions) button visible in YouTube — try Elevation Church, TD Jakes, or Steven Furtick.");
+  return typeof transcription === "string" ? transcription : (transcription as any).text ?? "";
 }
 
-export async function transcribeAudio(audioBuffer: Buffer, mimeType: string): Promise<string> {
-  throw new Error(
-    "Audio transcription requires a speech-to-text service. Please use a YouTube URL for now."
-  );
+function getMimeType(filename: string): string {
+  if (filename.endsWith(".mp3")) return "audio/mpeg";
+  if (filename.endsWith(".wav")) return "audio/wav";
+  if (filename.endsWith(".mp4")) return "video/mp4";
+  return "audio/mpeg";
 }

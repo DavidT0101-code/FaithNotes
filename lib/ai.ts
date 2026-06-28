@@ -88,7 +88,7 @@ export async function processSermonTranscript(
 }
 
 export async function transcribeAudio(audioBuffer: Buffer, filename: string): Promise<string> {
-  const blob = new Blob([audioBuffer]);
+  const blob = new Blob([new Uint8Array(audioBuffer)]);
   const file = new File([blob], filename, { type: getMimeType(filename) });
 
   const transcription = await client.audio.transcriptions.create({

@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude mcp *)",
+      "Bash(~/.claude/local/claude mcp *)",
+      "Bash(which claude *)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --yes)",
+      "Read(//opt/homebrew/bin/**)",
+      "Read(//Applications/**)",
+      "Read(//Users/tuguldurtsogtbaatar/.volta/**)",
+      "Read(//Users/tuguldurtsogtbaatar/**)",
+      "Bash(ls /System/Volumes/Data/opt/homebrew/bin/brew 2>/dev/null || ls /opt/homebrew/bin/brew 2>/dev/null || echo \"no\")",
+      "Bash(mkdir -p \"/Users/tuguldurtsogtbaatar/Desktop/FaithNotes!/src/app/api/process-sermon\" \"/Users/tuguldurtsogtbaatar/Desktop/FaithNotes!/src/app/api/transcribe\" \"/Users/tuguldurtsogtbaatar/Desktop/FaithNotes!/src/app/dashboard\" \"/Users/tuguldurtsogtbaatar/Desktop/FaithNotes!/src/app/upload\" \"/Users/tuguldurtsogtbaatar/Desktop/FaithNotes!/src/app/sermon/[id]/devotions\" \"/Users/tuguldurtsogtbaatar/Desktop/FaithNotes!/src/app/sermon/[id]/quiz\" \"/Users/tuguldurtsogtbaatar/Desktop/FaithNotes!/src/app/community\" \"/Users/tuguldurtsogtbaatar/Desktop/FaithNotes!/src/app/login\" \"/Users/tuguldurtsogtbaatar/Desktop/FaithNotes!/src/app/signup\" \"/Users/tuguldurtsogtbaatar/Desktop/FaithNotes!/src/components\" \"/Users/tuguldurtsogtbaatar/Desktop/FaithNotes!/src/hooks\" \"/Users/tuguldurtsogtbaatar/Desktop/FaithNotes!/public\")",
+      "Bash(~/.nvm/versions/node/v24.18.0/bin/node --version)",
+      "Bash(~/.nvm/versions/node/v24.18.0/bin/npm --version)",
+      "Bash(arch -x86_64 ~/.nvm/versions/node/v24.18.0/bin/node --version)",
+      "Bash(arch -x86_64 ~/.nvm/versions/node/v24.18.0/bin/npm install)",
+      "Bash(PATH=/Users/tuguldurtsogtbaatar/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ node --version)",
+      "Bash(PATH=/Users/tuguldurtsogtbaatar/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npm --version)",
+      "Bash(PATH=/Users/tuguldurtsogtbaatar/.nvm/versions/node/v24.18.0/bin:__TRACKED_VAR__ npm install)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "Bash(cat /tmp/faithnotes-dev.log)",
+      "Bash(kill 13831)",
+      "Bash(cp -r \"/Users/tuguldurtsogtbaatar/Desktop/FaithNotes!\" \"/Users/tuguldurtsogtbaatar/Desktop/FaithNotes\")"
+    ]
+  }
+}

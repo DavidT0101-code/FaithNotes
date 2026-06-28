@@ -88,9 +88,44 @@ export async function processSermonTranscript(
 }
 
 export async function generateYouTubeTranscript(videoId: string): Promise<string> {
-  const { YoutubeTranscript } = await import("youtube-transcript");
-  const transcriptItems = await YoutubeTranscript.fetchTranscript(videoId);
-  return transcriptItems.map((item) => item.text).join(" ");
+  const headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept-Language": "en-US,en;q=0.9",
+  };
+
+  // Fetch the YouTube page to extract caption track URL
+  const pageRes = await fetch(`https://www.youtube.com/watch?v=${videoId}`, { headers });
+  if (!pageRes.ok) throw new Error("Could not fetch YouTube page");
+  const html = await pageRes.text();
+
+  // Extract ytInitialPlayerResponse
+  const match = html.match(/ytInitialPlayerResponse\s*=\s*(\{.+?\})\s*;/s);
+  if (!match) throw new Error("Could not parse YouTube page data");
+
+  const playerResponse = JSON.parse(match[1]);
+  const captions = playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+
+  if (!captions || captions.length === 0) {
+    throw new Error("Transcript is disabled on this video. Please try a video with closed captions (CC) enabled.");
+  }
+
+  // Prefer English captions
+  const track = captions.find((c: any) => c.languageCode === "en") || captions[0];
+  const captionUrl = track.baseUrl + "&fmt=json3";
+
+  const captionRes = await fetch(captionUrl, { headers });
+  if (!captionRes.ok) throw new Error("Could not fetch captions");
+
+  const captionData = await captionRes.json();
+  const text = captionData.events
+    ?.filter((e: any) => e.segs)
+    .map((e: any) => e.segs.map((s: any) => s.utf8).join(""))
+    .join(" ")
+    .replace(/\n/g, " ")
+    .trim();
+
+  if (!text || text.length < 100) throw new Error("Transcript too short or empty.");
+  return text;
 }
 
 export async function transcribeAudio(audioBuffer: Buffer, mimeType: string): Promise<string> {
